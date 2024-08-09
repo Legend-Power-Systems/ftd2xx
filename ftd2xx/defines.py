@@ -133,6 +133,10 @@ class Status(IntEnum):
     NOT_SUPPORTED = 17
     OTHER_ERROR = 18
 
+# Device information flags
+class Flags(IntFlag):
+    OPENED = 1
+    HISPEED = 2
 
 # Driver Types
 DRIVER_TYPE_D2XX = 0

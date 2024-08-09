@@ -7,6 +7,7 @@ except this uses ctypes instead of an extension approach.
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 import ctypes as c
 import logging
 import sys
@@ -29,6 +30,7 @@ ft_program_data = _ft.ft_program_data
 ft_eeprom_2232h = _ft.ft_eeprom_2232h
 ft_eeprom_x_series = _ft.ft_eeprom_x_series
 ft_eeprom_header = _ft.ft_eeprom_header
+ft_device_list_info_node = _ft._ft_device_list_info_node
 
 LOGGER = logging.getLogger("ftd2xx")
 
@@ -50,7 +52,8 @@ class DeviceError(Exception):
         return type(self), (self.message,)
 
 
-class DeviceInfoDetail(TypedDict):
+@dataclass
+class DeviceInfoDetail:
     index: int
     flags: int
     type: int
@@ -59,6 +62,23 @@ class DeviceInfoDetail(TypedDict):
     serial: bytes
     description: bytes
     handle: _ft.FT_HANDLE
+
+    @property
+    def flag_objs(self) -> defines.Flags:
+        return defines.Flags(self.flags)
+
+    @classmethod
+    def from_struct(cls, struct: c.Structure, index=0):
+        return cls(
+            index=index,
+            flags=struct.Flags,
+            type=struct.Type,
+            id=struct.ID,
+            location=struct.LocId,
+            serial=struct.SerialNumber,
+            description=struct.Description,
+            handle=struct.ftHandle
+        )
 
 
 class DeviceInfo(TypedDict):
@@ -218,6 +238,19 @@ def createDeviceInfoList() -> int:
     m = _ft.DWORD()
     call_ft(_ft.FT_CreateDeviceInfoList, c.byref(m))
     return m.value
+
+def getDeviceInfoList() -> list[DeviceInfoDetail]:
+    num_devs = createDeviceInfoList()
+    info_list = (ft_device_list_info_node * num_devs)()
+    call_ft(
+        _ft.FT_GetDeviceInfoList,
+        info_list,
+        c.byref(c.c_ulong(num_devs))
+    )
+
+    return [
+        DeviceInfoDetail.from_struct(i) for i in list(info_list)
+    ]
 
 
 def getDeviceInfoDetail(devnum: int = 0, update: bool = True) -> DeviceInfoDetail:
@@ -767,6 +800,7 @@ __all__ = [
     "listDevices",
     "getLibraryVersion",
     "createDeviceInfoList",
+    "getDeviceInfoList",
     "getDeviceInfoDetail",
     "open",
     "openEx",
