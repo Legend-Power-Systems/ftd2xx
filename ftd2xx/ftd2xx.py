@@ -249,7 +249,8 @@ def getDeviceInfoList() -> list[DeviceInfoDetail]:
     )
 
     return [
-        DeviceInfoDetail.from_struct(i) for i in list(info_list)
+        DeviceInfoDetail.from_struct(info, index=idx)
+        for idx, info in enumerate(list(info_list))
     ]
 
 
