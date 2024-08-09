@@ -26,6 +26,9 @@ else:
 
 
 ft_program_data = _ft.ft_program_data
+ft_eeprom_2232h = _ft.ft_eeprom_2232h
+ft_eeprom_x_series = _ft.ft_eeprom_x_series
+ft_eeprom_header = _ft.ft_eeprom_header
 
 LOGGER = logging.getLogger("ftd2xx")
 
@@ -663,6 +666,90 @@ class FTD2XX(ContextManager["FTD2XX"]):
             c.byref(b_read),
         )
         return bytes(buf[: b_read.value])
+
+    def eepromRead(
+            self
+        ) -> tuple[c.Structure, str, str, str, str]:
+        eep_struct = self._get_eeprom_struct()
+        Manufacturer = (c.c_char * defines.MAX_DESCRIPTION_SIZE)()
+        ManufacturerId = (c.c_char * defines.MAX_DESCRIPTION_SIZE)()
+        Description = (c.c_char * defines.MAX_DESCRIPTION_SIZE)()
+        SerialNumber = (c.c_char * defines.MAX_DESCRIPTION_SIZE)()
+        call_ft(
+            _ft.FT_EEPROM_Read,
+            self.handle,
+            c.byref(eep_struct),
+            c.sizeof(eep_struct),
+            Manufacturer,
+            ManufacturerId,
+            Description,
+            SerialNumber,
+        )
+        return (
+            eep_struct,
+            Manufacturer.value.decode(),
+            ManufacturerId.value.decode(),
+            Description.value.decode(),
+            SerialNumber.value.decode(),
+        )
+
+    def eepromProgram(
+            self,
+            eep_struct: c.Structure | None=None,
+            Manufacturer: str="",
+            ManufacturerId: str="",
+            Description: str="",
+            SerialNumber: str="",
+            **kwargs,
+        ):
+        if eep_struct is None:
+            eep_struct = self._get_eeprom_struct(**kwargs)
+        Manufacturer = (
+            c.c_char * defines.MAX_DESCRIPTION_SIZE
+        )(*(Manufacturer.encode("utf-8")))
+        ManufacturerId = (
+            c.c_char * defines.MAX_DESCRIPTION_SIZE
+        )(*(ManufacturerId.encode("utf-8")))
+        Description = (
+            c.c_char * defines.MAX_DESCRIPTION_SIZE
+        )(*(Description.encode("utf-8")))
+        SerialNumber = (
+            c.c_char * defines.MAX_DESCRIPTION_SIZE
+        )(*(SerialNumber.encode("utf-8")))
+
+
+        call_ft(
+            _ft.FT_EEPROM_Program,
+            self.handle,
+            c.byref(eep_struct),
+            c.sizeof(eep_struct),
+            Manufacturer,
+            ManufacturerId,
+            Description,
+            SerialNumber,
+        )
+
+
+    def _get_eeprom_struct(self, **kwargs) -> c.Structure:
+        info = self.getDeviceInfo()
+        dev_type = defines.Device(info["type"])
+        # TODO: add rest of these
+        table = {
+            defines.DEVICE_2232H: ft_eeprom_2232h,
+            defines.DEVICE_X_SERIES: ft_eeprom_x_series,
+        }
+        if dev_type not in table.keys():
+            LOGGER.error(f"TODO: Support getting eeprom struct for {dev_type}")
+            raise NotImplementedError
+        struct = table[dev_type]()
+        struct.common.deviceType = dev_type.value
+
+        for key, val in kwargs.items():
+            if getattr(struct.common, key, None) != None:
+                setattr(struct.common, key, val)
+            elif getattr(struct, key):
+                setattr(struct, key, val)
+        return struct
 
     def __exit__(
         self,
