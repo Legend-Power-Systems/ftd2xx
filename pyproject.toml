@@ -6,6 +6,8 @@ description = "Python interface to ftd2xx.dll from FTDI using ctypes based on d2
 authors = ["Jasper Chan"]
 readme = "README.rst"
 
+[tool.poetry.dependencies]
+pypiwin32 = "^223"
 [project]
 dynamic = ["version", "authors"]
 name = "ftd2xx"
@@ -85,6 +87,7 @@ python = ["3.8", "3.9", "3.10", "3.11", "3.12"]
 python_files = ["*/tests/t_*.py"]
 python_classes = "Test*"
 testpaths = ["ftd2xx/tests"]
+
 
 
 [tool.hatch.envs.docs]
