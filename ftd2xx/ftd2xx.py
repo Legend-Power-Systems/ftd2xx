@@ -779,10 +779,18 @@ class FTD2XX(ContextManager["FTD2XX"]):
         struct.common.deviceType = dev_type.value
 
         for key, val in kwargs.items():
+            if key == "deviceType":
+                if val != dev_type.value:
+                    LOGGER.warning(
+                        f"{struct} should have a deviceType of {dev_type.value} "
+                        f"but caller is setting it to {val}"
+                    )
             if getattr(struct.common, key, None) != None:
                 setattr(struct.common, key, val)
-            elif getattr(struct, key):
+            elif getattr(struct, key, None) != None:
                 setattr(struct, key, val)
+            else:
+                LOGGER.warning(f"{struct} has no attribute called {key}")
         return struct
 
     def __exit__(
