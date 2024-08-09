@@ -21,6 +21,7 @@ except ImportError:
 from .ftd2xx import (
     FTD2XX,
     DeviceError,
+    DeviceInfoDetail,
     call_ft,
     createDeviceInfoList,
     ft_program_data,
@@ -43,6 +44,7 @@ __all__ = [
     "openEx",
     "FTD2XX",
     "DeviceError",
+    "DeviceInfoDetail",
     "ft_program_data",
 ]
 if sys.platform == "win32":
