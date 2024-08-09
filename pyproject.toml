@@ -1,3 +1,11 @@
+[tool.poetry]
+name = "ftd2xx"
+# TODO: make this dynamic
+version = "1.4.0"
+description = "Python interface to ftd2xx.dll from FTDI using ctypes based on d2xx by Pablo Bleyer"
+authors = ["Jasper Chan"]
+readme = "README.rst"
+
 [project]
 dynamic = ["version", "authors"]
 name = "ftd2xx"
