@@ -334,112 +334,163 @@ ftd2xx.h:412"""
 # ftd2xx.h 417
 
 
+# structure to hold program data for FT_EE_Program, FT_EE_ProgramEx, FT_EE_Read 
+# and FT_EE_ReadEx functions
 class ft_program_data(Structure):
     _fields_ = [
         # ftd2xx.h 417
-        ("Signature1", DWORD),
-        ("Signature2", DWORD),
-        ("Version", DWORD),
-        ("VendorId", WORD),
-        ("ProductId", WORD),
-        ("Manufacturer", STRING),
-        ("ManufacturerId", STRING),
-        ("Description", STRING),
-        ("SerialNumber", STRING),
-        ("MaxPower", WORD),
-        ("PnP", WORD),
-        ("SelfPowered", WORD),
-        ("RemoteWakeup", WORD),
-        ("Rev4", UCHAR),
-        ("IsoIn", UCHAR),
-        ("IsoOut", UCHAR),
-        ("PullDownEnable", UCHAR),
-        ("SerNumEnable", UCHAR),
-        ("USBVersionEnable", UCHAR),
-        ("USBVersion", WORD),
-        ("Rev5", UCHAR),
-        ("IsoInA", UCHAR),
-        ("IsoInB", UCHAR),
-        ("IsoOutA", UCHAR),
-        ("IsoOutB", UCHAR),
-        ("PullDownEnable5", UCHAR),
-        ("SerNumEnable5", UCHAR),
-        ("USBVersionEnable5", UCHAR),
-        ("USBVersion5", WORD),
-        ("AIsHighCurrent", UCHAR),
-        ("BIsHighCurrent", UCHAR),
-        ("IFAIsFifo", UCHAR),
-        ("IFAIsFifoTar", UCHAR),
-        ("IFAIsFastSer", UCHAR),
-        ("AIsVCP", UCHAR),
-        ("IFBIsFifo", UCHAR),
-        ("IFBIsFifoTar", UCHAR),
-        ("IFBIsFastSer", UCHAR),
-        ("BIsVCP", UCHAR),
-        ("UseExtOsc", UCHAR),
-        ("HighDriveIOs", UCHAR),
-        ("EndpointSize", UCHAR),
-        ("PullDownEnableR", UCHAR),
-        ("SerNumEnableR", UCHAR),
-        ("InvertTXD", UCHAR),
-        ("InvertRXD", UCHAR),
-        ("InvertRTS", UCHAR),
-        ("InvertCTS", UCHAR),
-        ("InvertDTR", UCHAR),
-        ("InvertDSR", UCHAR),
-        ("InvertDCD", UCHAR),
-        ("InvertRI", UCHAR),
-        ("Cbus0", UCHAR),
-        ("Cbus1", UCHAR),
-        ("Cbus2", UCHAR),
-        ("Cbus3", UCHAR),
-        ("Cbus4", UCHAR),
-        ("RIsVCP", UCHAR),
-        ("PullDownEnable7", UCHAR),
-        ("SerNumEnable7", UCHAR),
-        ("ALSlowSlew", UCHAR),
-        ("ALSchmittInput", UCHAR),
-        ("ALDriveCurrent", UCHAR),
-        ("AHSlowSlew", UCHAR),
-        ("AHSchmittInput", UCHAR),
-        ("AHDriveCurrent", UCHAR),
-        ("BLSlowSlew", UCHAR),
-        ("BLSchmittInput", UCHAR),
-        ("BLDriveCurrent", UCHAR),
-        ("BHSlowSlew", UCHAR),
-        ("BHSchmittInput", UCHAR),
-        ("BHDriveCurrent", UCHAR),
-        ("IFAIsFifo7", UCHAR),
-        ("IFAIsFifoTar7", UCHAR),
-        ("IFAIsFastSer7", UCHAR),
-        ("AIsVCP7", UCHAR),
-        ("IFBIsFifo7", UCHAR),
-        ("IFBIsFifoTar7", UCHAR),
-        ("IFBIsFastSer7", UCHAR),
-        ("BIsVCP7", UCHAR),
-        ("PowerSaveEnable", UCHAR),
-        ("PullDownEnable8", UCHAR),
-        ("SerNumEnable8", UCHAR),
-        ("ASlowSlew", UCHAR),
-        ("ASchmittInput", UCHAR),
-        ("ADriveCurrent", UCHAR),
-        ("BSlowSlew", UCHAR),
-        ("BSchmittInput", UCHAR),
-        ("BDriveCurrent", UCHAR),
-        ("CSlowSlew", UCHAR),
-        ("CSchmittInput", UCHAR),
-        ("CDriveCurrent", UCHAR),
-        ("DSlowSlew", UCHAR),
-        ("DSchmittInput", UCHAR),
-        ("DDriveCurrent", UCHAR),
-        ("ARIIsTXDEN", UCHAR),
-        ("BRIIsTXDEN", UCHAR),
-        ("CRIIsTXDEN", UCHAR),
-        ("DRIIsTXDEN", UCHAR),
-        ("AIsVCP8", UCHAR),
-        ("BIsVCP8", UCHAR),
-        ("CIsVCP8", UCHAR),
-        ("DIsVCP8", UCHAR),
+
+        ("Signature1", DWORD),  # Header - must be 0x00000000 
+        ("Signature2", DWORD),  # Header - must be 0xffffffff
+        ("Version", DWORD),     # Header - FT_PROGRAM_DATA version
+		# 0 = original
+		# 1 = FT2232 extensions
+		# 2 = FT232R extensions
+		# 3 = FT2232H extensions
+		# 4 = FT4232H extensions
+		# 5 = FT232H extensions
+
+        ("VendorId", WORD),          # 0x0403
+        ("ProductId", WORD),         # 0x6001
+        ("Manufacturer", STRING),    # "FTDI"
+        ("ManufacturerId", STRING),  # "FT"
+        ("Description", STRING),     # "USB HS Serial Converter"
+        ("SerialNumber", STRING),    # "FT000001" if fixed, or NULL
+        ("MaxPower", WORD),          # 0 < MaxPower <= 500
+        ("PnP", WORD),               # 0 = disabled, 1 = enabled
+        ("SelfPowered", WORD),       # 0 = bus powered, 1 = self powe
+        ("RemoteWakeup", WORD),      # 0 = not capable, 1 = capable
+
+        # Rev4 (FT232B) extensions
+        ("Rev4", UCHAR),              # non-zero if Rev4 chip, zero otherwise
+        ("IsoIn", UCHAR),             # non-zero if in endpoint is isochronous
+        ("IsoOut", UCHAR),            # non-zero if out endpoint is isochronous
+        ("PullDownEnable", UCHAR),    # non-zero if pull down enabled
+        ("SerNumEnable", UCHAR),      # non-zero if serial number to be used
+        ("USBVersionEnable", UCHAR),  # non-zero if chip uses USBVersion
+        ("USBVersion", WORD),         # BCD (0x0200 => USB2)
+
+        #Rev 5 (FT2232) extensions
+        ("Rev5", UCHAR),               # non-zero if Rev5 chip, zero otherwise
+        ("IsoInA", UCHAR),             # non-zero if in endpoint is isochronous
+        ("IsoInB", UCHAR),             # non-zero if in endpoint is isochronous
+        ("IsoOutA", UCHAR),            # non-zero if out endpoint is isochronous
+        ("IsoOutB", UCHAR),            # non-zero if out endpoint is isochronous
+        ("PullDownEnable5", UCHAR),    # non-zero if pull down enabled
+        ("SerNumEnable5", UCHAR),      # non-zero if serial number to be used
+        ("USBVersionEnable5", UCHAR),  # non-zero if chip uses USBVersion
+        ("USBVersion5", WORD),         # BCD (0x0200 => USB2)
+        ("AIsHighCurrent", UCHAR),     # non-zero if interface is high current
+        ("BIsHighCurrent", UCHAR),     # non-zero if interface is high current
+        ("IFAIsFifo", UCHAR),          # non-zero if interface is 245 FIFO
+        ("IFAIsFifoTar", UCHAR),       # non-zero if interface is 245 FIFO CPU target
+        ("IFAIsFastSer", UCHAR),       # non-zero if interface is Fast serial
+        ("AIsVCP", UCHAR),             # non-zero if interface is to use VCP drivers
+        ("IFBIsFifo", UCHAR),          # non-zero if interface is 245 FIFO
+        ("IFBIsFifoTar", UCHAR),       # non-zero if interface is 245 FIFO CPU target
+        ("IFBIsFastSer", UCHAR),       # non-zero if interface is Fast serial
+        ("BIsVCP", UCHAR),             # non-zero if interface is to use VCP drivers
+
+
+        # Rev 6 (FT232R) extensions
+        ("UseExtOsc", UCHAR),        # Use External Oscillator
+        ("HighDriveIOs", UCHAR),     # High Drive I/Os
+        ("EndpointSize", UCHAR),     # Endpoint size
+        ("PullDownEnableR", UCHAR),  # non-zero if pull down enabled
+        ("SerNumEnableR", UCHAR),    # non-zero if serial number to be used
+        ("InvertTXD", UCHAR),        # non-zero if invert TXD
+        ("InvertRXD", UCHAR),        # non-zero if invert RXD
+        ("InvertRTS", UCHAR),        # non-zero if invert RTS
+        ("InvertCTS", UCHAR),        # non-zero if invert CTS
+        ("InvertDTR", UCHAR),        # non-zero if invert DTR
+        ("InvertDSR", UCHAR),        # non-zero if invert DSR
+        ("InvertDCD", UCHAR),        # non-zero if invert DCD
+        ("InvertRI", UCHAR),         # non-zero if invert RI
+        ("Cbus0", UCHAR),            # Cbus Mux control
+        ("Cbus1", UCHAR),            # Cbus Mux control
+        ("Cbus2", UCHAR),            # Cbus Mux control
+        ("Cbus3", UCHAR),            # Cbus Mux control
+        ("Cbus4", UCHAR),            # Cbus Mux control
+        ("RIsVCP", UCHAR),           # non-zero if using D2XX driver
+
+        # Rev 7 (FT2232H) Extensions
+        ("PullDownEnable7", UCHAR),  # non-zero if pull down enabled
+        ("SerNumEnable7", UCHAR),    # non-zero if serial number to be used
+        ("ALSlowSlew", UCHAR),       # non-zero if AL pins have slow slew
+        ("ALSchmittInput", UCHAR),   # non-zero if AL pins are Schmitt input
+        ("ALDriveCurrent", UCHAR),   # valid values are 4mA, 8mA, 12mA, 16mA
+        ("AHSlowSlew", UCHAR),       # non-zero if AH pins have slow slew
+        ("AHSchmittInput", UCHAR),   # non-zero if AH pins are Schmitt input
+        ("AHDriveCurrent", UCHAR),   # valid values are 4mA, 8mA, 12mA, 16mA
+        ("BLSlowSlew", UCHAR),       # non-zero if BL pins have slow slew
+        ("BLSchmittInput", UCHAR),   # non-zero if BL pins are Schmitt input
+        ("BLDriveCurrent", UCHAR),   # valid values are 4mA, 8mA, 12mA, 16mA
+        ("BHSlowSlew", UCHAR),       # non-zero if BH pins have slow slew
+        ("BHSchmittInput", UCHAR),   # non-zero if BH pins are Schmitt input
+        ("BHDriveCurrent", UCHAR),   # valid values are 4mA, 8mA, 12mA, 16mA
+        ("IFAIsFifo7", UCHAR),       # non-zero if interface is 245 FIFO
+        ("IFAIsFifoTar7", UCHAR),    # non-zero if interface is 245 FIFO CPU target
+        ("IFAIsFastSer7", UCHAR),    # non-zero if interface is Fast serial
+        ("AIsVCP7", UCHAR),          # non-zero if interface is to use VCP drivers
+        ("IFBIsFifo7", UCHAR),       # non-zero if interface is 245 FIFO
+        ("IFBIsFifoTar7", UCHAR),    # non-zero if interface is 245 FIFO CPU target
+        ("IFBIsFastSer7", UCHAR),    # non-zero if interface is Fast serial
+        ("BIsVCP7", UCHAR),          # non-zero if interface is to use VCP drivers
+        ("PowerSaveEnable", UCHAR),  # non-zero if using BCBUS7 to save power for self-powered designs
+
+
+        # Rev 8 (FT4232H) Extensions
+        ("PullDownEnable8", UCHAR),  # non-zero if pull down enabled
+        ("SerNumEnable8", UCHAR),    # non-zero if serial number to be used
+        ("ASlowSlew", UCHAR),        # non-zero if A pins have slow slew
+        ("ASchmittInput", UCHAR),    # non-zero if A pins are Schmitt input
+        ("ADriveCurrent", UCHAR),    # valid values are 4mA, 8mA, 12mA, 16mA
+        ("BSlowSlew", UCHAR),        # non-zero if B pins have slow slew
+        ("BSchmittInput", UCHAR),    # non-zero if B pins are Schmitt input
+        ("BDriveCurrent", UCHAR),    # valid values are 4mA, 8mA, 12mA, 16mA
+        ("CSlowSlew", UCHAR),        # non-zero if C pins have slow slew
+        ("CSchmittInput", UCHAR),    # non-zero if C pins are Schmitt input
+        ("CDriveCurrent", UCHAR),    # valid values are 4mA, 8mA, 12mA, 16mA
+        ("DSlowSlew", UCHAR),        # non-zero if D pins have slow slew
+        ("DSchmittInput", UCHAR),    # non-zero if D pins are Schmitt input
+        ("DDriveCurrent", UCHAR),    # valid values are 4mA, 8mA, 12mA, 16mA
+        ("ARIIsTXDEN", UCHAR),       # non-zero if port A uses RI as RS485 TXDEN
+        ("BRIIsTXDEN", UCHAR),       # non-zero if port B uses RI as RS485 TXDEN
+        ("CRIIsTXDEN", UCHAR),       # non-zero if port C uses RI as RS485 TXDEN
+        ("DRIIsTXDEN", UCHAR),       # non-zero if port D uses RI as RS485 TXDEN
+        ("AIsVCP8", UCHAR),          # non-zero if interface is to use VCP drivers
+        ("BIsVCP8", UCHAR),          # non-zero if interface is to use VCP drivers
+        ("CIsVCP8", UCHAR),          # non-zero if interface is to use VCP drivers
+        ("DIsVCP8", UCHAR),          # non-zero if interface is to use VCP drivers
+
+        # Rev 9 (FT232H) Extensions
+        ("PullDownEnableH", UCHAR),     # non-zero if pull down enabled
+        ("SerNumEnableH", UCHAR),       # non-zero if serial number to be used
+        ("ACSlowSlewH", UCHAR),         # non-zero if AC pins have slow slew
+        ("ACSchmittInputH", UCHAR),     # non-zero if AC pins are Schmitt input
+        ("ACDriveCurrentH", UCHAR),     # valid values are 4mA, 8mA, 12mA, 16mA
+        ("ADSlowSlewH", UCHAR),         # non-zero if AD pins have slow slew
+        ("ADSchmittInputH", UCHAR),     # non-zero if AD pins are Schmitt input
+        ("ADDriveCurrentH", UCHAR),     # valid values are 4mA, 8mA, 12mA, 16mA
+        ("Cbus0H", UCHAR),              # Cbus Mux control
+        ("Cbus1H", UCHAR),              # Cbus Mux control
+        ("Cbus2H", UCHAR),              # Cbus Mux control
+        ("Cbus3H", UCHAR),              # Cbus Mux control
+        ("Cbus4H", UCHAR),              # Cbus Mux control
+        ("Cbus5H", UCHAR),              # Cbus Mux control
+        ("Cbus6H", UCHAR),              # Cbus Mux control
+        ("Cbus7H", UCHAR),              # Cbus Mux control
+        ("Cbus8H", UCHAR),              # Cbus Mux control
+        ("Cbus9H", UCHAR),              # Cbus Mux control
+        ("IsFifoH", UCHAR),             # non-zero if interface is 245 FIFO
+        ("IsFifoTarH", UCHAR),          # non-zero if interface is 245 FIFO CPU target
+        ("IsFastSerH", UCHAR),          # non-zero if interface is Fast serial
+        ("IsFT1248H", UCHAR),           # non-zero if interface is FT1248
+        ("FT1248CpolH", UCHAR),         # FT1248 clock polarity - clock idle high (1) or clock idle low (0)
+        ("FT1248LsbH", UCHAR),          # FT1248 data is LSB (1) or MSB (0)
+        ("FT1248FlowControlH", UCHAR),  # FT1248 flow control enable
+        ("IsVCPH", UCHAR),              # non-zero if interface is to use VCP drivers
+        ("PowerSaveEnableH", UCHAR),    # non-zero if using ACBUS7 to save power for self-powered designs
     ]
 
 
