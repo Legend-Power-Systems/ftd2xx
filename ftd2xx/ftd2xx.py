@@ -67,6 +67,10 @@ class DeviceInfoDetail:
     def flag_objs(self) -> defines.Flags:
         return defines.Flags(self.flags)
 
+    @property
+    def type_obj(self) -> defines.Device:
+        return defines.Device(self.type)
+
     @classmethod
     def from_struct(cls, struct: c.Structure, index=0):
         return cls(
